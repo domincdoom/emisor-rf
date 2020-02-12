@@ -1,0 +1,72 @@
+#include <Manchester.h> // https://github.com/mchr3k/arduino-libs-manchester
+
+/*
+
+  Manchester Transmitter example
+
+  In this example transmitter will send 10 bytes array  per transmittion
+
+  try different speeds using this constants, your maximum possible speed will
+  depend on various factors like transmitter type, distance, microcontroller speed, ...
+
+  MAN_300 0
+  MAN_600 1
+  MAN_1200 2
+  MAN_2400 3
+  MAN_4800 4
+  MAN_9600 5
+  MAN_19200 6
+  MAN_38400 7
+
+*/
+
+#define TX_PIN  4  //pin 4 conectado a transmisor
+#define LED_PIN 13 //alias para pin 13
+
+char dataa[5] = {5, '1', '2', '3', 'a'};  // cadena de datos el primer dato no se toma en cuenta '123' como código y 'a' para encender el led
+char datab[5] = {5, '1', '2', '3', 'b'};  // 'b' para apagar el led
+char estado = 0;  // variable auxiliar
+char conteo = 0;  // variable auxiliar
+void setup()
+{
+  pinMode(LED_PIN, OUTPUT); //pin 13 como salida
+  digitalWrite(LED_PIN, LOW); // iniciamos con el pin apagado
+  man.setupTransmit(TX_PIN, MAN_600); //pin 4 para transmisor y velocidad de transmisión rf a 600 baudios
+}
+
+
+uint8_t datalength = 5; // se transmitirán 5 datos
+void loop()
+{
+  while (digitalRead(3) == HIGH)  // bucle si el pulsador sigue accionado
+  {
+    conteo = conteo + 1;  // sumamos 1 a la variable conteo
+    if (conteo > 12)  // si conteo supera el valor de 12 
+    {
+      conteo = 11;  // igualamos la variable a 11
+    }
+    if (conteo == 10) // si conteo es igual a 10 enviamos dato
+    {
+      if (estado == 1)  // si el estado es 1 el pin del receptor esta encendido ahora lo apagamos
+      {
+        man.transmitArray(5, datab);  //enviamos la cadena con 'b' para apagar
+        digitalWrite(LED_PIN, LOW); // apagamos pin 13
+      }
+      if (estado == 0)  // si el estado es 0 el pin del receptor esta apago ahora lo encendemos
+      {
+        man.transmitArray(5, dataa);  //enviamos la cadena con 'a' para encender
+        digitalWrite(LED_PIN, HIGH);  //encendemos pin 13
+      }
+    }
+  }
+  delay(2); // espera
+  conteo = 0; // reiniciamos la variable conteo
+  if (digitalRead(LED_PIN) == 1)//si el pin 13 esta encendido
+  {
+    estado = 1; //estado es 1
+  }
+  if (digitalRead(LED_PIN) == 0)//si el pin 13 esta apagado
+  {
+    estado = 0; //estado es 0
+  }
+}
